@@ -264,7 +264,7 @@ handleAssembleSignedTransaction=()=>{
 }
 
 handleCreateClientFromPureStake=()=>{
-  Algo.createClientFromPurestake("TESTNET",(error,result)=>{
+  Algo.createClientFromPurestake("TESTNET",PURESTAKE_API_PORT,PURESTAKE_API_KEY,(error,result)=>{
     if(error){
       console.error(error);
       return;
