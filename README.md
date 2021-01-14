@@ -25,6 +25,7 @@ This is a react-native wrapper around the java-algorand-sdk, it supports the fol
 
 ## Installation
 
+<img src="./React-native-algo_showcase.gif" alt="drawing" width="200"/>
 ```sh
 npm install react-native-algo
 ```
