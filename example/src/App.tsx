@@ -4,18 +4,15 @@ import { SafeAreaView,
   StyleSheet,
   ScrollView,
   View,
-  Text,
+ 
   StatusBar,
-  TouchableOpacity } from 'react-native';
+  TouchableOpacity,} from 'react-native';
 import Algo from 'react-native-algo';
-
+import { Appbar } from 'react-native-paper';
+import { RadioButton, Text,Button,Card,ActivityIndicator, Colors,TextInput,Divider,
+  Banner} from 'react-native-paper';
 export default class App extends React.Component{
-  state={
-    accountInfo:"AccountInfo",
-    signedTrans:"",
-    assetId:""
-  }
-
+ 
 
 componentDidMount(){
   console.log("good");
@@ -27,7 +24,6 @@ Algo.createNewAccount((publicAddr)=>{
   this.setState({accountInfo:publicAddr});
   console.log(publicAddr);
 });
-
 
 
 }
@@ -272,11 +268,329 @@ handleCreateClientFromPureStake=()=>{
     console.log(result);
   });
 }
-render(){
+state={
+  accountInfo:"AccountInfo",
+  signedTrans:"",
+  assetId:"",
+  node:"purestake",
+  network:"testnet",
+  seedphraseInput:"",
+  recoverAcccountBanner:false,
+  recoverAccountData:"",
+  createAccountBanner:false,
+  createAccountData:"",
+  accountBalanceAddress:"",
+  accountBalanceBanner:false,
+  accountBalanceLoader:false,
+  accountBalanceData:"",
+  connectToNode:false,
+  connectToNodeData:"",
+  connectToNodeBanner:false,
 
-  let{accountInfo}=this.state;
-  return( <View style={{marginTop:30,alignItems:'stretch',flex:1,justifyContent:"center"}}>
-      <TouchableOpacity onPress={this.handleCreateAccountInfoPress}><Text>Create Account</Text></TouchableOpacity>
+}
+
+handleConnectToNodelicked=()=>{
+  let{node,network}=this.state;
+  if(node=="hackathon"){
+    this.setState({connectToNode:true})
+    Algo.createClientFromHackathonInstance((error,result)=>{
+      if(error){
+        console.error(error);
+        console.log("error")
+        this.setState({connectToNodeData:error,  connectToNodeBanner:true,connectToNode:false})
+        return;
+      }
+      console.log("Success")
+      console.log(error);
+      console.log(result);
+      this.setState({connectToNodeData:result,  connectToNodeBanner:true,connectToNode:false})
+    });
+  }else if(node=="purestake"){
+    if(network=="testnet"){
+      this.setState({connectToNode:true})
+      Algo.createClientFromPurestake("TESTNET",443,PURESTAKE_API_KEY,(error,result)=>{
+        if(error){
+          this.setState({connectToNode:false})
+          console.error(error);
+          this.setState({connectToNodeData:error,  connectToNodeBanner:true,connectToNode:false})
+          return;
+        }
+        console.log(result);
+        this.setState({connectToNodeData:result,  connectToNodeBanner:true,connectToNode:false})
+      });
+    }else{
+      this.setState({connectToNode:true})
+      Algo.createClientFromPurestake("MAINNET",443,PURESTAKE_API_KEY,(error,result)=>{
+        this.setState({connectToNode:false})
+        if(error){
+          console.error(error);
+          this.setState({connectToNodeData:error,  connectToNodeBanner:true,connectToNode:false})
+          return;
+        }
+        this.setState({connectToNodeData:result,  connectToNodeBanner:true,connectToNode:false})
+        console.log(result);
+      });
+
+    }
+  }
+}
+
+handleRecoverAccountClicked=()=>{
+  let{seedphraseInput}=this.state;
+  console.log(seedphraseInput);
+  Algo.recoverAccount(seedphraseInput,(error,result)=>{
+    if(error){
+      console.error(error);
+      this.setState({recoverAccountData:error,recoverAcccountBanner:true})
+      return;
+    }
+    console.log(result);
+    this.setState({recoverAccountData:`Address : ${result.publicAddress}\n Mnemonic : ${result.mnemonic}`,recoverAcccountBanner:true});
+  })
+}
+
+handleCreateAccountClicked=()=>{
+  Algo.createNewAccount((result)=>{
+    this.setState({createAccountData:`Address : ${result.publicAddress}\n Mnemonic : ${result.mnemonic}`});
+    console.log(result);
+  });
+  
+}
+
+handleGetAccountBalanceClicked=()=>{
+  let{accountBalanceAddress}=this.state;
+  this.setState({accountBalanceLoader:true})
+  Algo.getAccountBalance(accountBalanceAddress,(error,result)=>{
+    if(error){
+      console.error(error);
+      this.setState({accountBalanceData:error,accountBalanceLoader:false,accountBalanceBanner:true})
+      return;
+    }
+    console.log(result);
+    this.setState({accountBalanceData:`${result} Algos`,accountBalanceLoader:false,accountBalanceBanner:true})
+     
+  });
+
+}
+render(){
+  let{accountInfo,node,network,seedphraseInput,recoverAcccountBanner,
+    createAccountBanner,accountBalanceAddress,accountBalanceBanner,
+    connectToNode,connectToNodeData,connectToNodeBanner,
+    recoverAccountData,createAccountData,accountBalanceLoader,accountBalanceData}=this.state;
+  return( <View style={{marginTop:0,alignItems:'stretch',flex:1,justifyContent:"flex-start"}}>
+<ScrollView>
+<Appbar.Header >
+       <Appbar.Content title="React-Native-Algo" subtitle={'Showcase'} />
+    </Appbar.Header>
+
+   <Card  style={{marginLeft:10,marginRight:10,paddingBottom:10}} >
+   <Card.Title
+    titleStyle={{textAlign:'center'}}
+    title="Connect to a Node"
+   />
+   <ActivityIndicator style={{position:"absolute",top:0,right:0,bottom:0,left:0}} animating={connectToNode} color={Colors.red800} />
+      <View style={{flexDirection:'row',alignItems:"center",
+      justifyContent:"space-around",marginTop:15}}>
+      <View style={{flexDirection:'row',alignItems:"center"}}>
+        <Text>PureStake</Text>
+        <RadioButton value= "purestake"
+        status={node=="purestake"?"checked":"unchecked"}
+        onPress={()=>{
+          console.log("purree")
+       
+          this.setState({node:"purestake"})}}
+          
+          />
+          
+      </View>
+      <View style={{flexDirection:'row',alignItems:"center"}}>
+        <Text>Hackathon</Text>
+        <RadioButton value="hackathon" 
+        status={node=="hackathon"?"checked":"unchecked"}
+        onPress={()=>{
+          console.log("purree")
+       
+          this.setState({node:"hackathon"})}}
+          
+         
+        />
+      </View>
+      <View style={{flexDirection:'row',alignItems:"center"}}>
+        <Text>Custom Node</Text>
+        <RadioButton value="customnode" 
+        status={node=="customnode"?"checked":"unchecked"}
+        onPress={()=>{
+          console.log("purree")
+       
+          this.setState({node:"customnode"})}}
+          
+       
+        />
+        
+      </View>
+      </View>
+      <View style={{flexDirection:'row',alignItems:"center",
+      justifyContent:"space-around",marginTop:15}}>
+      <View style={{flexDirection:'row',alignItems:"center"}}>
+        <Text>Test net</Text>
+        <RadioButton value= "testnet"
+        status={network=="testnet"?"checked":"unchecked"}
+        onPress={()=>{
+          console.log("purree")
+       
+          this.setState({network:"testnet"})}}
+          
+          />
+          
+      </View>
+      <View style={{flexDirection:'row',alignItems:"center"}}>
+        <Text>Main Net</Text>
+        <RadioButton value="mainnet" 
+        status={network=="mainnet"?"checked":"unchecked"}
+        onPress={()=>{
+          console.log("purree")
+       
+          this.setState({network:"mainnet"})}}
+          
+         
+        />
+      </View> 
+      </View>
+     
+  <View style={{alignItems:'center',marginTop:15}}>
+      <Button  style={{width:"70%",}} mode="contained" onPress={this.handleConnectToNodelicked}>
+          Connect
+       </Button>
+    
+       </View>   
+       <Banner
+              visible={connectToNodeBanner}
+              actions={[
+                {
+                  label: 'Ok',
+                  onPress: () => this.setState({connectToNodeBanner:false}),
+                },
+                // {
+                //   label: 'Learn more',
+                //   onPress: () => this.setState({connectToNodeBanner:true}),
+                // },
+              ]}
+     >
+       {connectToNodeData}
+     </Banner>
+       </Card>
+       <Divider />
+       <Card style={{alignItems:'stretch',marginTop:15,marginLeft:10,marginRight:10,paddingBottom:10}}>
+          <Card.Title
+           titleStyle={{textAlign:'center'}}
+           title="Account Creation And Recovery"
+           subtitle="Recover Account "
+          />
+
+
+          <TextInput
+           style={{backgroundColor:"#ffffff"}}
+            label="Enter Seed Phrase"
+            mode="outlined"
+            onChangeText={(text)=>this.setState({seedphraseInput:text})}
+            value={seedphraseInput}
+
+          />
+          <View style={{alignItems:'center',marginTop:15}}>
+           <Button  style={{width:"70%",}} mode="contained" onPress={() => {
+             this.handleRecoverAccountClicked()
+             console.log('Pressed')}}>
+             Recover Account
+            </Button>
+            </View>
+            <Banner
+              visible={recoverAcccountBanner}
+              actions={[
+                {
+                  label: 'Copy Address',
+                  onPress: () => this.setState({recoverAcccountBanner:false}),
+                },
+                {
+                  label: 'Hide',
+                  onPress: () => this.setState({recoverAcccountBanner:true}),
+                },
+              ]}
+     >
+      {recoverAccountData}
+    </Banner>
+
+    <Card.Title
+           subtitle="Create Account "
+          />
+    <View style={{alignItems:'center',marginTop:0}}>
+              <Button  style={{width:"70%",}} mode="contained" onPress={() => {
+                this.handleCreateAccountClicked()
+                this.setState({createAccountBanner:true})
+                console.log('Pressed')}}>
+                Create Account
+                </Button>
+                </View>
+                <Banner
+                  visible={createAccountBanner}
+                  actions={[
+                    {
+                      label: 'Copy Address',
+                      onPress: () => this.setState({createAccountBanner:false}),
+                    },
+                    {
+                      label: 'Hide',
+                      onPress: () => this.setState({createAccountBanner:true}),
+                    },
+                  ]}
+        >
+  {createAccountData}
+        </Banner>
+
+       </Card>
+
+
+       <Card style={{marginTop:15,marginLeft:10,marginRight:10,paddingBottom:10,position:'relative'}}>
+         <Card.Title
+           title="Get Account Balance"
+           titleStyle={{textAlign:'center'}}
+         />
+         <ActivityIndicator style={{position:'absolute',top:0,left:0,right:0,}} animating={accountBalanceLoader} color={Colors.black} />
+          <TextInput
+            style={{backgroundColor:"#ffffff"}}
+            label="Enter Address"
+            mode="outlined"
+            onChangeText={(text)=>this.setState({accountBalanceAddress:text})}
+            value={accountBalanceAddress}
+          />
+
+<View style={{alignItems:'center',marginTop:15}}>
+           <Button  style={{width:"70%",}} mode="contained" onPress={() => {
+             this.handleGetAccountBalanceClicked();
+             console.log('Pressed')}}>
+             Get Account Balance
+            </Button>
+            </View>
+       <Banner
+              visible={accountBalanceBanner}
+              actions={[
+                {
+                  label: 'Copy Amount',
+                  onPress: () => this.setState({accountBalanceBanner:false}),
+                },
+                {
+                  label: 'Hide',
+                  onPress: () => this.setState({accountBalanceBanner:true}),
+                },
+              ]}
+     >
+      {accountBalanceData}
+    </Banner>    
+       </Card>
+
+
+           
+
+      {/* <TouchableOpacity onPress={this.handleCreateAccountInfoPress}><Text>Create Account</Text></TouchableOpacity>
       <TouchableOpacity style={{marginTop:10}} onPress={this.handleRecoverAccount}><Text>Recovr Account</Text></TouchableOpacity>
       <TouchableOpacity style={{marginTop:10}} onPress={this.handleGetAccountBalance}><Text>Get Account Balance</Text></TouchableOpacity>
       <TouchableOpacity style={{marginTop:10}} onPress={this.handleSendFunds}><Text>Send Funds</Text></TouchableOpacity>
@@ -295,9 +609,19 @@ render(){
       <TouchableOpacity style={{marginTop:10}} onPress={this.handleGroupTransactions}><Text>Group TRANSACTION</Text></TouchableOpacity>
       <TouchableOpacity style={{marginTop:10}} onPress={this.handleSignGrouptRANSACTION}><Text>Sign Group TRANSACTION</Text></TouchableOpacity>
       <TouchableOpacity style={{marginTop:10}} onPress={this.handleAssembleSignedTransaction}><Text>Assembl signd Transaction</Text></TouchableOpacity>
-      <TouchableOpacity style={{marginTop:10}} onPress={this.handleCreateClientFromPureStake}><Text>Create Purestake client</Text></TouchableOpacity>
+      <TouchableOpacity style={{marginTop:10}} onPress={this.handleCreateClientFromPureStake}><Text>Create Purestake client</Text></TouchableOpacity> */}
       {/* <Text>{accountInfo}</Text> */}
-    </View>     
+      </ScrollView>
+    </View>    
+     
   )
 }
 }
+const styles = StyleSheet.create({
+  bottom: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+});
