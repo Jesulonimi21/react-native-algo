@@ -11,6 +11,7 @@ import Algo from 'react-native-algo';
 import { Appbar } from 'react-native-paper';
 import { RadioButton, Text,Button,Card,ActivityIndicator, Colors,TextInput,Divider,
   Banner} from 'react-native-paper';
+  import Clipboard from '@react-native-community/clipboard';
 export default class App extends React.Component{
  
 
@@ -24,7 +25,6 @@ Algo.createNewAccount((publicAddr)=>{
   this.setState({accountInfo:publicAddr});
   console.log(publicAddr);
 });
-
 
 }
 // "box wear empty voyage scout cheap arrive father wagon correct thought sand planet comfort also patient vast patient tide rather young cinnamon plastic abandon model"
@@ -286,6 +286,12 @@ state={
   connectToNode:false,
   connectToNodeData:"",
   connectToNodeBanner:false,
+  transferFundsBanner:false,
+  transferFundsLoading:false,
+  transferFundsData:"",
+  transferFundsAddress:"",
+  amount:"",
+  note:""
 
 }
 
@@ -372,11 +378,29 @@ handleGetAccountBalanceClicked=()=>{
   });
 
 }
+
+handleTransferFundsClicked=()=>{
+  let{transferFundsAddress,note,amount}=this.state;
+  this.setState({transferFundsLoading:true})
+  Algo.sendFunds(transferFundsAddress, note,parseInt(amount),
+  (error,result)=>{
+    if(error){
+      console.error(error);
+      this.setState({transferFundsData:error,transferFundsLoading:false,transferFundsBanner:true})
+      return;
+    }
+    this.setState({transferFundsData:result,transferFundsLoading:false,transferFundsBanner:true})
+    console.log(result);
+  });
+}
 render(){
   let{accountInfo,node,network,seedphraseInput,recoverAcccountBanner,
     createAccountBanner,accountBalanceAddress,accountBalanceBanner,
     connectToNode,connectToNodeData,connectToNodeBanner,
-    recoverAccountData,createAccountData,accountBalanceLoader,accountBalanceData}=this.state;
+    recoverAccountData,createAccountData,accountBalanceLoader,
+    accountBalanceData,transferFundsBanner,
+    transferFundsData,transferFundsLoading,transferFundsAddress,
+    amount,note}=this.state;
   return( <View style={{marginTop:0,alignItems:'stretch',flex:1,justifyContent:"flex-start"}}>
 <ScrollView>
 <Appbar.Header >
@@ -508,7 +532,9 @@ render(){
               actions={[
                 {
                   label: 'Copy Address',
-                  onPress: () => this.setState({recoverAcccountBanner:false}),
+                  onPress: () => {
+                    Clipboard.setString(recoverAccountData)
+                    this.setState({recoverAcccountBanner:false})},
                 },
                 {
                   label: 'Hide',
@@ -535,7 +561,9 @@ render(){
                   actions={[
                     {
                       label: 'Copy Address',
-                      onPress: () => this.setState({createAccountBanner:false}),
+                      onPress: () => {
+                        Clipboard.setString(createAccountData)
+                        this.setState({createAccountBanner:false})},
                     },
                     {
                       label: 'Hide',
@@ -575,7 +603,9 @@ render(){
               actions={[
                 {
                   label: 'Copy Amount',
-                  onPress: () => this.setState({accountBalanceBanner:false}),
+                  onPress: () => {
+                    Clipboard.setString(accountBalanceData)
+                    this.setState({accountBalanceBanner:false})},
                 },
                 {
                   label: 'Hide',
@@ -586,6 +616,64 @@ render(){
       {accountBalanceData}
     </Banner>    
        </Card>
+
+       <Card style={{marginTop:15,marginLeft:10,marginRight:10,paddingBottom:10,position:'relative'}}>
+         <Card.Title
+           title="Transfer Funds"
+           titleStyle={{textAlign:'center'}}
+         />
+         <ActivityIndicator style={{position:'absolute',top:0,left:0,right:0,}} animating={transferFundsLoading} color={Colors.black} />
+          <TextInput
+            style={{backgroundColor:"#ffffff"}}
+            label="Enter Address"
+            mode="outlined"
+            onChangeText={(text)=>this.setState({transferFundsAddress:text})}
+            value={transferFundsAddress}
+          />
+
+    <TextInput
+            style={{backgroundColor:"#ffffff"}}
+            label="Enter Amount"
+            mode="outlined"
+            onChangeText={(text)=>this.setState({amount:text})}
+            value={amount}
+            keyboardType="numeric"
+          />
+           <TextInput
+            style={{backgroundColor:"#ffffff"}}
+            label="Enter Note"
+            mode="outlined"
+            onChangeText={(text)=>this.setState({note:text})}
+            value={note}
+          />
+
+<View style={{alignItems:'center',marginTop:15}}>
+           <Button  style={{width:"70%",}} mode="contained" onPress={() => {
+             this.handleTransferFundsClicked();
+             console.log('Pressed')}}>
+            Transfer Funds
+            </Button>
+            </View>
+       <Banner
+              visible={transferFundsBanner}
+              actions={[
+                {
+                  label: 'Copy Id',
+                  onPress: () => {
+                    this.setState({transferFundsBanner:false})
+                    Clipboard.setString(transferFundsData)
+                  },
+                },
+                {
+                  label: 'Hide',
+                  onPress: () => this.setState({transferFundsBanner:true}),
+                },
+              ]}
+     >
+      {transferFundsData}
+    </Banner>    
+       </Card>
+
 
 
            
