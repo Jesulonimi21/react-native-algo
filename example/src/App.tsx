@@ -25,7 +25,6 @@ Algo.createNewAccount((publicAddr)=>{
   this.setState({accountInfo:publicAddr});
   console.log(publicAddr);
 });
-
 }
 // "box wear empty voyage scout cheap arrive father wagon correct thought sand planet comfort also patient vast patient tide rather young cinnamon plastic abandon model"
 // "cactus check vocal shuffle remember regret vanish spice problem property diesel success easily napkin deposit gesture forum bag talent mechanic reunion enroll buddy about attract"
@@ -272,7 +271,7 @@ state={
   accountInfo:"AccountInfo",
   signedTrans:"",
   assetId:"",
-  node:"purestake",
+  node:"customnode",
   network:"testnet",
   seedphraseInput:"",
   recoverAcccountBanner:false,
@@ -291,7 +290,11 @@ state={
   transferFundsData:"",
   transferFundsAddress:"",
   amount:"",
-  note:""
+  note:"",
+  customNodeAddress:"10.0.2.2",
+  customNodePort:4001,
+  customNodeToken:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+
 
 }
 
@@ -338,6 +341,19 @@ handleConnectToNodelicked=()=>{
       });
 
     }
+  }else if(node=="customnode"){
+    this.setState({connectToNode:true});
+    let{customNodeAddress,customNodePort,customNodeToken}=this.state;
+    Algo.createClientFromSandbox(customNodeAddress,parseInt(customNodePort),customNodeToken,
+    (error,result)=>{
+      if(error){
+        console.error(error);
+        this.setState({connectToNodeData:error,  connectToNodeBanner:true,connectToNode:false})
+        return;
+      }
+      this.setState({connectToNodeData:result,  connectToNodeBanner:true,connectToNode:false})
+      console.log(result);
+    });
   }
 }
 
@@ -393,6 +409,19 @@ handleTransferFundsClicked=()=>{
     console.log(result);
   });
 }
+
+
+handleCreateClientFromSandbox=()=>{
+  console.log("cREATING SANDBOX CLIOENT");
+  Algo.createClientFromSandbox("10.0.2.2",4001,"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  (error,result)=>{
+    if(error){
+      console.error(error);
+      return;
+    }
+    console.log(result);
+  });
+}
 render(){
   let{accountInfo,node,network,seedphraseInput,recoverAcccountBanner,
     createAccountBanner,accountBalanceAddress,accountBalanceBanner,
@@ -400,7 +429,7 @@ render(){
     recoverAccountData,createAccountData,accountBalanceLoader,
     accountBalanceData,transferFundsBanner,
     transferFundsData,transferFundsLoading,transferFundsAddress,
-    amount,note}=this.state;
+    amount,note,customNodeAddress,customNodePort,customNodeToken}=this.state;
   return( <View style={{marginTop:0,alignItems:'stretch',flex:1,justifyContent:"flex-start"}}>
 <ScrollView>
 <Appbar.Header >
@@ -409,10 +438,10 @@ render(){
 
    <Card  style={{marginLeft:10,marginRight:10,paddingBottom:10}} >
    <Card.Title
-    titleStyle={{textAlign:'center'}}
+    titleStyle={{textAlign:'center',}}
     title="Connect to a Node"
    />
-   <ActivityIndicator style={{position:"absolute",top:0,right:0,bottom:0,left:0}} animating={connectToNode} color={Colors.red800} />
+   <ActivityIndicator style={{position:"absolute",top:0,right:0,bottom:0,left:0,elevation:10}} animating={connectToNode} color={Colors.red800} />
       <View style={{flexDirection:'row',alignItems:"center",
       justifyContent:"space-around",marginTop:15}}>
       <View style={{flexDirection:'row',alignItems:"center"}}>
@@ -453,7 +482,32 @@ render(){
         
       </View>
       </View>
-      <View style={{flexDirection:'row',alignItems:"center",
+      {node=="customnode"?<View>
+      <TextInput
+            style={{backgroundColor:"#ffffff"}}
+            label="Enter Api Address"
+            mode="outlined"
+            onChangeText={(text)=>this.setState({customNodeAddress:text})}
+            value={customNodeAddress}
+          />
+
+    <TextInput
+            style={{backgroundColor:"#ffffff"}}
+            label="Enter Port Number"
+            mode="outlined"
+            onChangeText={(text)=>this.setState({customNodePort:text})}
+            value={`${customNodePort}`}
+            keyboardType="numeric"
+          />
+           <TextInput
+            style={{backgroundColor:"#ffffff"}}
+            label="Enter Api Token"
+            mode="outlined"
+            onChangeText={(text)=>this.setState({note:text})}
+            value={customNodeToken}
+          />
+
+      </View>:      <View style={{flexDirection:'row',alignItems:"center",
       justifyContent:"space-around",marginTop:15}}>
       <View style={{flexDirection:'row',alignItems:"center"}}>
         <Text>Test net</Text>
@@ -480,6 +534,8 @@ render(){
         />
       </View> 
       </View>
+}
+
      
   <View style={{alignItems:'center',marginTop:15}}>
       <Button  style={{width:"70%",}} mode="contained" onPress={this.handleConnectToNodelicked}>
@@ -679,6 +735,7 @@ render(){
            
 
       {/* <TouchableOpacity onPress={this.handleCreateAccountInfoPress}><Text>Create Account</Text></TouchableOpacity>
+      <TouchableOpacity style={{marginTop:10}} onPress={this.handleCreateClientFromSandbox}><Text>cREATE sANDBOX cLIENT</Text></TouchableOpacity>
       <TouchableOpacity style={{marginTop:10}} onPress={this.handleRecoverAccount}><Text>Recovr Account</Text></TouchableOpacity>
       <TouchableOpacity style={{marginTop:10}} onPress={this.handleGetAccountBalance}><Text>Get Account Balance</Text></TouchableOpacity>
       <TouchableOpacity style={{marginTop:10}} onPress={this.handleSendFunds}><Text>Send Funds</Text></TouchableOpacity>

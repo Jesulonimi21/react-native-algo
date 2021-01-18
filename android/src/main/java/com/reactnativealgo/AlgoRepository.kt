@@ -32,7 +32,7 @@ class AlgoRepository {
   var PURESTAKE_API_PORT = 443
   val TESTNET = "TESTNET"
   val MAINNET = "MAINNET"
-  var SANDBOX_ALGOD_ADDRESS = "127.0.0.1"
+  var SANDBOX_ALGOD_ADDRESS = "10.0.2.2"
   val SANDBOX_ALGOD_PORT = 4001
   val SANDBOX_ALGOD_API_TOKEN = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   var algodClient: AlgodClient
@@ -94,9 +94,14 @@ class AlgoRepository {
     } else throw Exception("$net is not currently supported by this sdk")
   }
 
-  fun createAlgodClientFromSandBox(): AlgodClient {
-    algodClient = AlgodClient(SANDBOX_ALGOD_API_TOKEN,
+  @kotlin.jvm.Throws(Exception::class)
+  fun createAlgodClientFromSandBox(SANDBOX_ALGOD_ADDRESS:String=this.SANDBOX_ALGOD_ADDRESS,SANDBOX_ALGOD_PORT:Int=this.SANDBOX_ALGOD_PORT,SANDBOX_ALGOD_API_TOKEN:String=this.SANDBOX_ALGOD_API_TOKEN): AlgodClient {
+    algodClient = AlgodClient(SANDBOX_ALGOD_ADDRESS,
       SANDBOX_ALGOD_PORT, SANDBOX_ALGOD_API_TOKEN) as AlgodClient
+    val headers = arrayOf("X-API-Key")
+    val values = arrayOf(SANDBOX_ALGOD_API_TOKEN)
+      val status = algodClient.GetStatus().execute(headers, values).body()
+   Log.d("algodebug", "${status.lastRound} algod last round ")
     return algodClient
   }
 
@@ -207,6 +212,7 @@ class AlgoRepository {
       .amount(valueToSend).receiver(Address(receiverAdddress)).note(note.toByteArray()).suggestedParams(transactionParametersResponse).build()
     return transaction
   }
+
 
   //    public    SignedTransaction createSignedTransaction(Transaction transaction){
   //

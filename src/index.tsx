@@ -31,6 +31,8 @@ type AlgoType = {
     groupTransactions(callback: Callback) :void,
     signGroupedTransactions(callback: Callback):void,
     assembleSignedTransaction(callback: Callback):void,
+    createClientFromSandbox(SANDBOX_ALGOD_ADDRESS:string,SANDBOX_ALGOD_PORT:number,SANDBOX_ALGOD_API_TOKEN:string, callback: Callback):void
+
      
 
 

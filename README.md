@@ -24,6 +24,9 @@ This is a react-native wrapper around the java-algorand-sdk, it supports the fol
 ## Only Android Support
 <img src="./React-native-algo_showcase.gif" alt="drawing" width="200"/>
 
+![screenshot](https://github.com/Jesulonimi21/react-native-algo/blob/main/Screenshot_1610673184.png)
+ 
+
 ## Installation
 
 ```sh
