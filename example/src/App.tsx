@@ -29,7 +29,7 @@ Algo.createNewAccount((publicAddr)=>{
 // "box wear empty voyage scout cheap arrive father wagon correct thought sand planet comfort also patient vast patient tide rather young cinnamon plastic abandon model"
 // "cactus check vocal shuffle remember regret vanish spice problem property diesel success easily napkin deposit gesture forum bag talent mechanic reunion enroll buddy about attract"
 // soup someone render seven flip woman olive great random color scene physical put tilt say route coin clutch repair goddess rack cousin decide abandon cream
-
+// VJQG6EJPZDAWFYLFF5XE3OMRQEK6RFFYSBVJOGXBH63ZQZ3QRRIUVIB7MY
 handleRecoverAccount=(event)=>{
   Algo.recoverAccount("soup someone render seven flip woman olive great random color scene physical put tilt say route coin clutch repair goddess rack cousin decide abandon cream",(error,result)=>{
     if(error){
@@ -271,7 +271,7 @@ state={
   accountInfo:"AccountInfo",
   signedTrans:"",
   assetId:"",
-  node:"customnode",
+  node:"purestake",
   network:"testnet",
   seedphraseInput:"",
   recoverAcccountBanner:false,
@@ -317,7 +317,7 @@ handleConnectToNodelicked=()=>{
   }else if(node=="purestake"){
     if(network=="testnet"){
       this.setState({connectToNode:true})
-      Algo.createClientFromPurestake("TESTNET",443,PURESTAKE_API_KEY,(error,result)=>{
+      Algo.createClientFromPurestake("TESTNET",443,"ADRySlL0NK5trzqZGAE3q1xxIqlQdSfk1nbHxTNe",(error,result)=>{
         if(error){
           this.setState({connectToNode:false})
           console.error(error);
@@ -360,7 +360,7 @@ handleConnectToNodelicked=()=>{
 handleRecoverAccountClicked=()=>{
   let{seedphraseInput}=this.state;
   console.log(seedphraseInput);
-  Algo.recoverAccount(seedphraseInput,(error,result)=>{
+  Algo.recoverAccount(seedphraseInput.trim(),(error,result)=>{
     if(error){
       console.error(error);
       this.setState({recoverAccountData:error,recoverAcccountBanner:true})
@@ -456,7 +456,7 @@ render(){
           />
           
       </View>
-      <View style={{flexDirection:'row',alignItems:"center"}}>
+      {/* <View style={{flexDirection:'row',alignItems:"center"}}>
         <Text>Hackathon</Text>
         <RadioButton value="hackathon" 
         status={node=="hackathon"?"checked":"unchecked"}
@@ -467,7 +467,7 @@ render(){
           
          
         />
-      </View>
+      </View> */}
       <View style={{flexDirection:'row',alignItems:"center"}}>
         <Text>Custom Node</Text>
         <RadioButton value="customnode" 
@@ -594,7 +594,7 @@ render(){
                 },
                 {
                   label: 'Hide',
-                  onPress: () => this.setState({recoverAcccountBanner:true}),
+                  onPress: () => this.setState({recoverAcccountBanner:false}),
                 },
               ]}
      >
@@ -623,7 +623,7 @@ render(){
                     },
                     {
                       label: 'Hide',
-                      onPress: () => this.setState({createAccountBanner:true}),
+                      onPress: () => this.setState({createAccountBanner:false}),
                     },
                   ]}
         >
@@ -665,7 +665,7 @@ render(){
                 },
                 {
                   label: 'Hide',
-                  onPress: () => this.setState({accountBalanceBanner:true}),
+                  onPress: () => this.setState({accountBalanceBanner:false}),
                 },
               ]}
      >
@@ -722,7 +722,7 @@ render(){
                 },
                 {
                   label: 'Hide',
-                  onPress: () => this.setState({transferFundsBanner:true}),
+                  onPress: () => this.setState({transferFundsBanner:false}),
                 },
               ]}
      >

@@ -95,6 +95,9 @@ class AlgoModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMo
     } catch (e: NoSuchAlgorithmException) {
       callback.invoke(e.message, null)
       e.printStackTrace()
+    }catch (e:java.lang.Exception){
+      callback.invoke(e.message, null)
+      e.printStackTrace()
     }
   }
 
@@ -225,25 +228,37 @@ class AlgoModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMo
 
   @ReactMethod
   fun createClientFromHackathonInstance(callback: Callback) {
-    try {
-      algoRepository!!.createClientFromHackathonInstance()
-      callback.invoke(null, "Client created successfully")
-    } catch (e: Exception) {
-      callback.invoke(e.message, null)
-      e.printStackTrace()
-    }
+
+    Thread(object: Runnable {
+      override fun run() {
+        try {
+          algoRepository!!.createClientFromHackathonInstance()
+          callback.invoke(null, "Client created successfully")
+        }catch (e: Exception) {
+          callback.invoke(e.message, null)
+          e.printStackTrace()
+        }
+      }
+    }).start();
+
+
   }
 
   @ReactMethod
   fun createClientFromSandbox(SANDBOX_ALGOD_ADDRESS:String,SANDBOX_ALGOD_PORT:Int,SANDBOX_ALGOD_API_TOKEN:String, callback: Callback) {
 
-    try {
-      algoRepository!!.createAlgodClientFromSandBox(SANDBOX_ALGOD_ADDRESS,SANDBOX_ALGOD_PORT,SANDBOX_ALGOD_API_TOKEN)
-      callback.invoke(null, "Created client successfully")
-    }catch (e:Exception){
-      callback.invoke(e.message, null)
-      e.printStackTrace()
-    }
+    Thread(object: Runnable{
+      override fun run() {
+        try {
+          algoRepository!!.createAlgodClientFromSandBox(SANDBOX_ALGOD_ADDRESS,SANDBOX_ALGOD_PORT,SANDBOX_ALGOD_API_TOKEN)
+          callback.invoke(null, "Created client successfully")
+        }catch (e:Exception){
+          callback.invoke(e.message, null)
+          e.printStackTrace()
+        }
+      }
+    }).start()
+
   }
 
   @ReactMethod

@@ -1,6 +1,6 @@
 {
   "name": "react-native-algo",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "This is a react-native wrapper around the java-algorand-sdk",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",

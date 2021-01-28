@@ -12,6 +12,7 @@ import com.algorand.algosdk.account.Account
 import com.algorand.algosdk.crypto.Address
 import com.algorand.algosdk.transaction.Transaction
 import com.fasterxml.jackson.core.JsonProcessingException
+import org.apache.commons.lang3.ArrayUtils
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
@@ -35,7 +36,7 @@ class AlgoRepository {
   var SANDBOX_ALGOD_ADDRESS = "10.0.2.2"
   val SANDBOX_ALGOD_PORT = 4001
   val SANDBOX_ALGOD_API_TOKEN = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-  var algodClient: AlgodClient
+  lateinit  var algodClient: AlgodClient
   fun getClearTextPublicKey(address: Address): ByteArray {
     var b = ByteArray(0)
     try {
@@ -102,6 +103,7 @@ class AlgoRepository {
     val values = arrayOf(SANDBOX_ALGOD_API_TOKEN)
       val status = algodClient.GetStatus().execute(headers, values).body()
    Log.d("algodebug", "${status.lastRound} algod last round ")
+    clientIsPureStake=false;
     return algodClient
   }
 
@@ -127,11 +129,12 @@ class AlgoRepository {
     return myAccount1
   }
 
+  @kotlin.jvm.Throws(java.lang.Exception::class)
   fun getWalletBalance(address: Address?): Double {
     val headers = arrayOf("X-API-Key")
     val values = arrayOf(PURESTAKE_API_KEY)
     var accountInfo: com.algorand.algosdk.v2.client.model.Account? = null
-    try {
+
       if(clientIsPureStake){
         accountInfo = algodClient.AccountInformation(address).execute(headers,values).body()
       }else{
@@ -139,10 +142,7 @@ class AlgoRepository {
       }
 
       java.lang.System.out.println("Account Balance: " + accountInfo!!.amount.toString() + " microAlgos")
-    } catch (e: Exception) {
-      println(e.message)
-      e.printStackTrace()
-    }
+
     return accountInfo!!.amount.toDouble()
   }
 
@@ -157,25 +157,79 @@ class AlgoRepository {
     val transaction: Transaction
     val senderAddress: String = senderAccount.getAddress().toString()
     val pendingTransactionResponse: PendingTransactionResponse
-    transactionParametersResponse = algodClient.TransactionParams().execute().body()
+    if(clientIsPureStake){
+      val headers = arrayOf("X-API-Key")
+      val values = arrayOf(PURESTAKE_API_KEY)
+      transactionParametersResponse = algodClient.TransactionParams().execute(headers,values).body()
+    }else{
+      transactionParametersResponse = algodClient.TransactionParams().execute().body()
+    }
+
     transaction = Transaction.PaymentTransactionBuilder().sender(senderAddress)
       .amount(valueToSend).receiver(Address(receiverAdddress)).note(note.toByteArray()).suggestedParams(transactionParametersResponse).build()
     val signedTransaction: SignedTransaction = senderAccount.signTransaction(transaction)
     val encodedTransaction: ByteArray = Encoder.encodeToMsgPack(signedTransaction)
-    val id: String = algodClient.RawTransaction().rawtxn(encodedTransaction).execute().body().txId
+    val id: String;
+    if(clientIsPureStake){
+      val headers = arrayOf("X-API-Key")
+      val values = arrayOf(PURESTAKE_API_KEY)
+      var txHeaders=ArrayUtils.add(headers,"Content-Type")
+      var txValues=ArrayUtils.add(values,"application/x-binary")
+      var resp  = algodClient.RawTransaction().rawtxn(encodedTransaction).execute(txHeaders,txValues)
+      if(!resp.isSuccessful){
+        throw  Exception(resp.message())
+      }
+      id=resp.body().txId;
+    }else{
+      id = algodClient.RawTransaction().rawtxn(encodedTransaction).execute().body().txId
+    }
+
     waitForConfirmation(id)
-    pendingTransactionResponse = algodClient.PendingTransactionInformation(id).execute().body()
+    if(clientIsPureStake){
+      val headers = arrayOf("X-API-Key")
+      val values = arrayOf(PURESTAKE_API_KEY)
+      var txHeaders=ArrayUtils.add(headers,"Content-Type")
+      var txValues=ArrayUtils.add(values,"application/x-binary")
+      pendingTransactionResponse = algodClient.PendingTransactionInformation(id).execute(headers,values).body()
+    }else{
+      pendingTransactionResponse = algodClient.PendingTransactionInformation(id).execute().body()
+    }
+
     java.lang.System.out.println("Transaction information (with notes): " + pendingTransactionResponse.toString())
     return id
   }
 
   @kotlin.jvm.Throws(Exception::class)
   fun waitForConfirmation(txID: String) {
-    var lastRound: Long = algodClient.GetStatus().execute().body().lastRound
-    while (true) {
+    var lastRound: Long
+    if(clientIsPureStake) {
+      val headers = arrayOf("X-API-Key")
+      val values = arrayOf(PURESTAKE_API_KEY)
+      var txHeaders = ArrayUtils.add(headers, "Content-Type")
+      var txValues = ArrayUtils.add(values, "application/x-binary")
+     var resp = algodClient.GetStatus().execute(headers,values)
+      if(!resp.isSuccessful){
+        throw  Exception(resp.message())
+      }
+      lastRound=resp.body().lastRound;
+    }else{
+      lastRound= algodClient.GetStatus().execute().body().lastRound
+    }
+      while (true) {
       try {
         // Check the pending tranactions
-        val pendingInfo: Response<PendingTransactionResponse> = algodClient.PendingTransactionInformation(txID).execute()
+
+        val pendingInfo: Response<PendingTransactionResponse>
+          if(clientIsPureStake){
+            val headers = arrayOf("X-API-Key")
+            val values = arrayOf(PURESTAKE_API_KEY)
+            var txHeaders=ArrayUtils.add(headers,"Content-Type")
+            var txValues=ArrayUtils.add(values,"application/x-binary")
+            pendingInfo = algodClient.PendingTransactionInformation(txID).execute(headers,values)
+          }else {
+
+           pendingInfo = algodClient.PendingTransactionInformation(txID).execute()
+          }
         if (pendingInfo.body().confirmedRound != null && pendingInfo.body().confirmedRound > 0) {
           // Got the completed Transaction
           println("Transaction " + txID + " confirmed in round " + pendingInfo.body().confirmedRound)
@@ -463,6 +517,6 @@ class AlgoRepository {
 //  }
 
   init {
-    algodClient = createClientFromHackathonInstance()
+//    algodClient = createClientFromHackathonInstance()
   }
 }
